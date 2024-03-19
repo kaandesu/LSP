@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	logger := getLogger("/Users/kaanyilmaz/Desktop/Programming/gits/LSP/log.txt")
+	logger := getLogger("./log.txt")
 	logger.Println("Hey, I started!")
 
 	scanner := bufio.NewScanner(os.Stdin)

@@ -1,1 +1,1 @@
-[kaandesu/LSP]2024/03/19 22:06:22 main.go:12: Hey, I started!
+[kaandesu/LSP]2024/03/19 22:34:40 main.go:12: Hey, I started!
