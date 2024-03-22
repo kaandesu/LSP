@@ -10,7 +10,7 @@ Check <a href="https://microsoft.github.io/language-server-protocol/specificatio
 
 Every progress will be tagged as checkpoints. Every tag will have a different README, more detailed explanation for each checkpoint. _To be updated_ contents of the checkpoints:
 
-**Checkpoint 1** <-- You are here:
+**[Checkpoint 1](./CHECKPOINT1.md)**
 
 - [x] Basic `DecodeMessage` function
 - [x] Basic `EncodeMessage` function
@@ -19,238 +19,73 @@ Every progress will be tagged as checkpoints. Every tag will have a different RE
 - [x] Basic `Logger` function
 - [x] Starting `Stdin scanner` in main, with no-op `handleMessage` function
 
-**Checkpoint 2**: <br>
-[*TBD*]
+**Checkpoint 2**: <-- You are here<br>
+
+- [x] Recieve basic messages from the lsp client and log them
+- [x] Decoding the `initialize`
+- [x] Initialize response
 
 ---
 
-### Checkpoint 1
+### Checkpoint 2
 
----
-
-1- Creating RPC package
-
-```bash
-go mod init [NAME]
-mkdir rpc
-touch rpc.go
-```
-
-#### rpc.go content:
-
-- `func EncodedMessage(msg any) string`
-
-2- Creating `rpc_test.go`
+1- Basic logging when msg recieved from lsp client
 
 ```go
-type EncodingExample struct {
-	Testing bool
-}
-
-func TestEncode(t *testing.T) {
-	/* 16 is the number of characters coming after that number
-	/* which is the content as defined in rpc.go */
-	expected := "Content-Length: 16\r\n\r\n{\"Testing\":true}"
-	actual := rpc.EncodeMessage(EncodingExample{Testing: true})
-	if expected != actual {
-		t.Fatalf("Ecpected: %s, Actual: %s", expected, actual)
-	}
+// main.go
+func handleMessage(logger *log.Logger, msg any) {
+	logger.Println(msg)
 }
 ```
 
-3- `rpc.go` - Creating `func DecodeMessage(msg []byte)`
+#### Starting the LSP from Neovim
 
-- cutting the bytes to get data from the content, we cut by \r \n \r \n see [LSP specification](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/)
+_in some nvim lua file_:
 
-```
-Content-Length: ...\r\n
-\r\n
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "textDocument/completion",
-  "params": {
-    ...
-  }
-}
-```
+[Example](./appendix/lsp_first_message_cp2.lua) below, attaches the lsp client when buffer has the type 'markdown'. <br>
+_`go build main.go` should be called, and used it's path for the `cmd`_
 
-```go
-func DecodeMessage(msg []byte) (int, error) {
-	/*
-	 * bytes.Cut: it takes some slice, takes some seperator
-	 * gives all the bytes before that and after that, and if we found it
-	 */
-	header, content, found := bytes.Cut(msg, []byte{'\r', '\n', '\r', '\n'})
-	if !found {
-		return 0, errors.New("Did not find seperator")
-	}
-	// we found "Content-Length: <number>..."
-	contentLengthBytes := header[len("Content-Length: "):]
-  // converting from bytes, i think
-	contentLength, err := strconv.Atoi(string(contentLengthBytes))
-	if err != nil {
-		return 0, err
-	}
+```lua
+local M = {}
 
-	// TODO: i'll get to this later
-	_ = content
-	return contentLength, nil
-}
-```
+function M.init_lsp()
+        local client = vim.lsp.start_client({
+                name = "kaandesu/lsp",
+                cmd = { "/path/to/the/lsp/project/main" }, -- go build main.go
+        })
+        if not client then
+                vim.notify("something is wrong with custom lsp client")
+        end
 
-4- Add decoding test to RPC_Test.go
+        vim.api.nvim_create_autocmd("FileType", {
+                pattern = "markdown",
+                callback = function()
+                        vim.lsp.buf_attach_client(0, client)
+                end,
+        })
+end
 
-```go
-func TestDecode(t *testing.T) {
-	incomingMessage := "Content-Length: 16\r\n\r\n{\"Testing\":true}"
-
-	contentLength, err := rpc.DecodeMessage([]byte(incomingMessage))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if contentLength != 16 {
-		t.Fatalf("Expected: 16, Got: %d", contentLength)
-	}
-}
-```
-
-#### Decoding Method
-
-example, we want to return this value:
-
-```json
-...
-"method": "textDocument/completion",
-...
-```
-
-in **rpc.go**:
-
-- `DecodeMessage` now returns the decoded method as first argument
-
-```go
-
-type BaseMessage struct {
-	Method string `json:"method"`
-}
-
-func DecodeMessage(msg []byte) (string, int, error){
-  ...
-
- 	var baseMessage BaseMessage
-
-	if err := json.Unmarshal(content[:contentLength], &baseMessage); err != nil {
-		return "", 0, err
-	}
-	return baseMessage.Method, contentLength, nil
-```
-
-**SOME CHANGES**:
-
-- `DecodeMessage` returns: string (message of method), []byte (which is the actual content), error
-
-```go
-func DecodeMessage(msg []byte) (string, []byte, error) {
-  ...
-
-	var baseMessage BaseMessage
-
-	if err := json.Unmarshal(content[:contentLength], &baseMessage); err != nil {
-		return "", nil, err
-	}
-	return baseMessage.Method, content[:contentLength], nil
-}
-```
-
-#### Building and Basic Logging
-
-**main.go**:
-
-1- Adding the `scanner`
-
-```go
-func main(){
-  // when scanner.Scan() called, it will wait for a standard input
-  scanner := bufio.NewScanner(os.Stdin)
-
-
-  // scanner doesn't know how to read the LSP messages, so we pass a split function
-  scanner.Split(rpc.Split)
-
-
-  // infinite while loop, that waits for a stdin to invoke
-  for scanner.Scan(){
-    msg : scanner.Text()
-
-    // not-yet implemented function
-    handleMessage(msg)
-  }
-
-
-  func handleMessage(_ any) {}
-
-}
-```
-
-in `rpc.go`:
-
-```go
-// for reference: type SplitFunc func(data []byte, atEOF bool) (advance int, token []byte, err error)
-func Split(data []byte, _ bool) (advance int, token []byte, err error) {
-	header, content, found := bytes.Cut(data, []byte{'\r', '\n', '\r', '\n'})
-	if !found {
-		return 0, nil, nil
-	}
-	// we found "Content-Length: <number>..."
-	contentLengthBytes := header[len("Content-Length: "):]
-	contentLength, err := strconv.Atoi(string(contentLengthBytes))
-	if err != nil {
-		return 0, nil, err
-	}
-	if len(content) < contentLength {
-		return 0, nil, nil
-	}
-	totalLength := len(header) + 4 + contentLength
-	return totalLength, data[:totalLength], nil
-}
-```
-
-2- Adding the `Logger`
-
-```go
-func main(){
-  logger := getLogger("path/to/the/log/file.txt")
-
-  // writing something to that file
-  logger.Println("Hey, logger is started")
-
-  .....
-
-}
-
-func getLogger(filename string) *log.Logger{
-  // creates every time and has write only permission
-	logfile, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
-	if err != nil {
-		panic(err)
-	}
-
-	return log.New(logfile, "[kaandesu/LSP]", log.Ldate|log.Ltime|log.Lshortfile)
-}
+return M
 
 ```
 
-3- Starting the logger to test
+#### About Server Lifecycle - [specs](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#lifeCycleMessages)
 
-```bash
-go run main.go
-```
+1- **Initialize Request:** <br>
 
-4- Check the specified log file if it worked
+- The initialize request is sent as the first request from the client to the server.
+- Server is not allowed to send any requests or notifications to the client until it has responded with an InitializeResult
+- `initialize` request may only be sent once
 
----
+- Afterwards, LSP shall respond with a `InitializeResult`
 
 **NEXT:**
 
-- [ ] Add actual basic logging to the message handler
+- [ ] TBD
+
+---
+
+**Honorable Mentions**
+
+- [tjdevries/educationalsp](https://github.com/tjdevries/educationalsp)
+- Brazil
