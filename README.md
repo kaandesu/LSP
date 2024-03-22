@@ -254,3 +254,8 @@ go run main.go
 **NEXT:**
 
 - [ ] Add actual basic logging to the message handler
+
+**Honorable Mentions**
+
+- [tjdevries/educationalsp](https://github.com/tjdevries/educationalsp)
+- Brazil
