@@ -89,3 +89,8 @@ return M
 
 - [tjdevries/educationalsp](https://github.com/tjdevries/educationalsp)
 - Brazil
+
+**Honorable Mentions**
+
+- [tjdevries/educationalsp](https://github.com/tjdevries/educationalsp)
+- Brazil
