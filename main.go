@@ -1,8 +1,10 @@
 package main
 
 import (
+	"LSP/lsp"
 	"LSP/rpc"
 	"bufio"
+	"encoding/json"
 	"log"
 	"os"
 )
@@ -29,6 +31,33 @@ func main() {
 
 func handleMessage(logger *log.Logger, method string, contents []byte) {
 	logger.Printf("Recieved msg with method: %s", method)
+
+	switch method {
+	case "initialize":
+		// As seen in the lsp spesification, after getting the first 'initialize' message we need to respond back
+		var request lsp.InitializeRequest
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("Hey, we couldn't parse this: %s", err)
+		}
+		logger.Printf("Connected to: %s %s", request.Params.ClientInfo.Name, request.Params.ClientInfo.Version)
+
+		// let's reply, will change later
+		msg := lsp.NewInitializeResponse(request.ID)
+		reply := rpc.EncodeMessage(msg)
+		// fmt.Printf("repllllyy : %s", reply)
+
+		writer := os.Stdout
+		writer.Write([]byte(reply))
+		logger.Print("Sent the reply")
+
+	case "textDocument/didOpen":
+		var request lsp.DidOpenTextDocumentNotification
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("Hey, we couldn't parse this: %s", err)
+		}
+		logger.Printf("Opened: %s, %s", request.Params.TextDocument.URI, request.Params.TextDocument.Text)
+
+	}
 }
 
 func getLogger(filename string) *log.Logger {

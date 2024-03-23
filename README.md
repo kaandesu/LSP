@@ -24,6 +24,7 @@ Every progress will be tagged as checkpoints. Every tag will have a different RE
 - [x] Recieve basic messages from the lsp client and log them
 - [x] Decoding the `initialize`
 - [x] Initialize response
+- [x] Text Document Synchronization
 
 ---
 
@@ -84,11 +85,6 @@ return M
 - [ ] TBD
 
 ---
-
-**Honorable Mentions**
-
-- [tjdevries/educationalsp](https://github.com/tjdevries/educationalsp)
-- Brazil
 
 **Honorable Mentions**
 

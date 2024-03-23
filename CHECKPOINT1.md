@@ -20,7 +20,11 @@ Every progress will be tagged as checkpoints. Every tag will have a different RE
 - [x] Starting `Stdin scanner` in main, with no-op `handleMessage` function
 
 **Checkpoint 2**: <br>
-[*TBD*]
+
+- [ ] Recieve basic messages from the lsp client and log them
+- [ ] Decoding the `initialize`
+- [ ] Initialize response
+- [ ] Text Document Synchronization
 
 ---
 

@@ -1,2 +1,7 @@
-[kaandesu/LSP]2024/03/22 15:47:43 main.go:12: Hey, I started!
-[kaandesu/LSP]2024/03/22 15:47:43 main.go:31: Recieved msg with method: initialize
+[kaandesu/LSP]2024/03/23 16:01:27 main.go:14: Hey, I started!
+[kaandesu/LSP]2024/03/23 16:01:27 main.go:33: Recieved msg with method: initialize
+[kaandesu/LSP]2024/03/23 16:01:27 main.go:42: Connected to: Neovim 0.9.4
+[kaandesu/LSP]2024/03/23 16:01:27 main.go:51: Sent the reply
+[kaandesu/LSP]2024/03/23 16:01:27 main.go:33: Recieved msg with method: initialized
+[kaandesu/LSP]2024/03/23 16:01:28 main.go:33: Reciev[kaandesu/LSP]2024/03/23 22:56:27 main.go:33: Recieved msg with method: textDocument/didOpen
+[kaandesu/LSP]2024/03/23 22:56:27 main.go:58: Opened: , 
