@@ -47,7 +47,7 @@ func NewInitializeResponse(id int) InitializeResponse {
 				HoverProvider:    true,
 			},
 			ServerInfo: ServerInfo{
-				Name:    "kaandesuLSP",
+				Name:    "kaandesu/lsp",
 				Version: "0.0.1",
 			},
 		},
