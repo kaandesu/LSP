@@ -68,7 +68,7 @@ func Split(data []byte, _ bool) (advance int, token []byte, err error) {
 	}
 	// we found "Content-Length: <number>..."
 	contentLengthBytes := header[len("Content-Length: "):]
-	// converting from bytes, i think
+
 	contentLength, err := strconv.Atoi(string(contentLengthBytes))
 	if err != nil {
 		return 0, nil, err
